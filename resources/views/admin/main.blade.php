@@ -201,6 +201,14 @@
               </p>
             </a>
           </li>
+          <li class="nav-item">
+            <a href="/survey" class="nav-link">
+              <i class="nav-icon fas fa-th"></i>
+              <p>
+                Survey
+              </p>
+            </a>
+          </li>
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
@@ -296,6 +304,17 @@
         });
     });
 </script>
-
+<script>
+  function addVariant() {
+      const container = document.getElementById('variant-container');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.name = 'variants[]';
+      input.className = 'form-control mb-2';
+      input.placeholder = 'Variant nomini kiriting';
+      input.required = true;
+      container.appendChild(input);
+  }
+</script>
 </body>
 </html>

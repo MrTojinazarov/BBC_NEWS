@@ -9,13 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::create('comments', function (Blueprint $table) {
+        Schema::create('ovozs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
-            $table->text('body');
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('savol_id')->constrained('savols')->onDelete('cascade');
+            $table->ipAddress('user_ip');
+            $table->foreignId('variant_id')->constrained('variants')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('comments');
+        Schema::dropIfExists('ovozs');
     }
 };

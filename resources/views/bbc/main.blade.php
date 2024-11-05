@@ -34,7 +34,7 @@
                     <ul class="navbar-nav ml-n2">
                         <li class="nav-item border-right border-secondary">
                             <a class="nav-link text-body small" href="#"><?php echo date('l, F j, Y'); ?></a>
-                        </li>                        
+                        </li>
                         <li class="nav-item border-right border-secondary">
                             <a class="nav-link text-body small" href="#">Contact</a>
                         </li>
@@ -46,13 +46,13 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-body small" href="{{ route('logout') }}"
-                               onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                 Logout
                             </a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                                 @csrf
                             </form>
-                        </li>                        
+                        </li>
                     </ul>
                 </nav>
             </div>
@@ -108,30 +108,61 @@
                 <div class="navbar-nav">
                     <a href="{{ route('bbc.index') }}" class="nav-item nav-link active">Home</a>
                 </div>
-    
+
                 <!-- Categories scrollable part -->
                 <div class="navbar-wrapper mx-3">
                     <div class="navbar-nav categories-nav py-0">
                         @foreach ($categories as $category)
-                            <a href="{{ route('bbc.category', $category->id) }}" class="nav-item nav-link">{{ $category->name }}</a>
+                            <a href="{{ route('bbc.category', $category->id) }}"
+                                class="nav-item nav-link">{{ $category->name }}</a>
                         @endforeach
                         <a href="contact.html" class="nav-item nav-link">Contact</a>
                     </div>
                 </div>
-    
+
                 <!-- Search box right aligned -->
                 <div class="input-group ml-auto d-none d-lg-flex" style="width: 100%; max-width: 300px;">
                     <input type="text" class="form-control border-0" placeholder="Keyword">
                     <div class="input-group-append">
-                        <button class="input-group-text bg-primary text-dark border-0 px-3"><i class="fa fa-search"></i></button>
+                        <button class="input-group-text bg-primary text-dark border-0 px-3"><i
+                                class="fa fa-search"></i></button>
                     </div>
                 </div>
             </div>
         </nav>
     </div>
-    
+
     {{-- content qismi --}}
     @yield('content')
+
+    <div class="container-fluid">
+        <div class="container">
+            @foreach ($savols as $savol)
+                @if ($savol->is_active)
+                    <h3>So'rovnoma</h3>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ $savol->name }}</h5>
+                            <ul class="list-group">
+                                @foreach ($savol->variants as $variant)
+                                    @php
+                                        $totalVotes = $variant->savol ? $variant->savol->ovozs->count() : 0;
+                                        $variantVotes = $variant->ovozs ? $variant->ovozs->count() : 0;
+                                        $percentage = $totalVotes > 0 ? ($variantVotes / $totalVotes) * 100 : 0;
+                                    @endphp
+                                    <li class="list-group-item" style="cursor: pointer;"
+                                        data-variant-id="{{ $variant->id }}"
+                                        onclick="vote({{ $variant->id }}, {{ $savol->id }}, this)">
+                                        {{ $variant->name }}: {{ number_format($percentage, 2) }}%
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                @endif
+            @endforeach
+        </div>
+    </div>
 
     <div class="container-fluid bg-dark pt-5 px-sm-3 px-md-5 mt-5">
         <div class="row py-4">
@@ -188,7 +219,8 @@
                 <h5 class="mb-4 text-white text-uppercase font-weight-bold">Categories</h5>
                 <div class="m-n1">
                     @foreach ($categories as $category)
-                    <a href="{{ route('bbc.category', $category->id) }}" class="btn btn-sm btn-secondary m-1">{{ $category->name }}</a>
+                        <a href="{{ route('bbc.category', $category->id) }}"
+                            class="btn btn-sm btn-secondary m-1">{{ $category->name }}</a>
                     @endforeach
                 </div>
             </div>
@@ -233,6 +265,72 @@
     <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
 
     <script src="js/main.js"></script>
+    <script>
+        let selectedVariant = null;
+
+        function vote(variantId, savolId, element) {
+            if (selectedVariant && selectedVariant !== element) {
+                selectedVariant.classList.remove('selected');
+            }
+
+            selectedVariant = element;
+            selectedVariant.classList.add('selected');
+
+            fetch("{{ route('ovoz.update', '') }}/" + variantId, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: JSON.stringify({
+                        variant_id: variantId,
+                        savol_id: savolId
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        updateVotes(variantId, data.variantVotes, data.totalVotes);
+
+                        location.reload();
+                    } else {
+                        console.error('Ovoz berishda xatolik yuz berdi: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Xato:', error);
+                    console.error('Ovoz berishda xatolik yuz berdi!');
+                });
+        }
+
+        function updateVotes(variantId, variantVotes, totalVotes) {
+            const percentage = totalVotes > 0 ? (variantVotes / totalVotes) * 100 : 0;
+
+            const variantElements = document.querySelectorAll('.list-group-item');
+            variantElements.forEach(item => {
+                if (item.getAttribute('data-variant-id') == variantId) {
+                    item.innerHTML = `${item.innerText.split(':')[0]}: ${number_format(percentage, 2)}%`;
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        function number_format(number, decimals) {
+            return parseFloat(number).toFixed(decimals);
+        }
+    </script>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+
 </body>
 
 </html>

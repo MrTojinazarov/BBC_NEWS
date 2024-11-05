@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('views', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained()->onDelete('cascade');
+            $table->foreignId('post_id')->constrained('posts')->onDelete('cascade');
             $table->ipAddress('user_ip');
             $table->timestamps();
         });

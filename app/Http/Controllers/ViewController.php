@@ -11,7 +11,7 @@ class ViewController extends Controller
     public function incrementViewCount($postId)
     {
         $ipAddress = request()->ip(); 
-        $viewExists = View::where('post_id', $postId)->where('user_ip', $ipAddress)->exists(); 
+        $viewExists = View::where('post_id', $postId)->where('user_ip', $ipAddress)->first(); 
 
         if (!$viewExists) {
             View::create([

@@ -9376,6 +9376,11 @@ a.text-primary:hover, a.text-primary:focus {
   color: #b38f00 !important;
 }
 
+.selected {
+  background-color: lightgrey;
+  color: black  ; 
+}
+
 .text-secondary {
   color: #31404B !important;
 }

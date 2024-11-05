@@ -21,7 +21,7 @@
                                     <div class="mb-2">
                                         <a class="badge badge-primary text-uppercase font-weight-semi-bold p-2 mr-2" href="{{ route('bbc.category', $post->category_id) }}">
                                             {{ $categories->find($post->category_id)->name }}
-                                        </a>
+                                         </a>
                                         <a class="text-body" href=""><small>{{ $post->created_at->format('M d, Y') }}</small></a>
                                     </div>
                                     <a class="h5 d-block mb-3 text-secondary text-uppercase font-weight-bold" href="{{route('bbc.single', $post->id)}}">{{ Str::limit($post->title, 80) }}</a>
@@ -77,6 +77,7 @@
                             </div>
                         </div>
                     </div>
+                    
                 </div>
     
                 <div class="col-lg-4">

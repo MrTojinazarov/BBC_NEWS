@@ -40,37 +40,31 @@ class Post extends Model
         return $this->hasMany(LikeOrDislike::class);
     }
 
-    // Post bilan LikeOrDislike o'rtasidagi munosabat
     public function likes()
     {
         return $this->hasMany(LikeOrDislike::class)->where('value', 1);
     }
 
-    // Post bilan LikeOrDislike o'rtasidagi munosabat
     public function dislikes()
     {
         return $this->hasMany(LikeOrDislike::class)->where('value', -1);
     }
 
-    // Post bilan View o'rtasidagi munosabat
     public function views()
     {
         return $this->hasMany(View::class);
     }
 
-    // Jami likelar sonini olish
     public function getLikesCountAttribute()
     {
         return $this->likes()->count();
     }
 
-    // Jami dislikelar sonini olish
     public function getDislikesCountAttribute()
     {
         return $this->dislikes()->count();
     }
 
-    // Jami views sonini olish
     public function getViewsCountAttribute()
     {
         return $this->views()->count();
