@@ -17,16 +17,28 @@ class BBCController extends Controller
 
     public function index()
     {
-        $posts = Post::withCount(['likes', 'dislikes'])->paginate(6);
-        $categories = Category::all();
-        $new_posts = Post::orderBy('created_at', 'desc')->take(8)->withCount(['likes', 'dislikes'])->get();
-
+        $posts = Post::withCount(['likes', 'dislikes'])
+            ->whereHas('category', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->paginate(6);
+        
+        $categories = Category::where('is_active', true)->get();
+        
+        $new_posts = Post::withCount(['likes', 'dislikes'])
+            ->whereHas('category', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->get();
+    
         foreach ($posts as $post) {
             $post->likes_count = $post->likes_count;
             $post->dislikes_count = $post->dislikes_count;
             $post->views_count = $post->views;
         }
-
+    
         return view('bbc.index', [
             'posts' => $posts,
             'categories' => $categories,
@@ -34,18 +46,33 @@ class BBCController extends Controller
         ]);
     }
     
+    
     public function byCategory($id)
     {
-        $categories = Category::all();
-        $posts = Post::where('category_id', $id)->withCount(['likes', 'dislikes'])->paginate(6);
-        $new_posts = Post::where('category_id', $id)->orderBy('created_at', 'desc')->take(8)->withCount(['likes', 'dislikes'])->get();
-
+        $categories = Category::where('is_active', true)->get();
+    
+        $posts = Post::where('category_id', $id)
+            ->whereHas('category', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->withCount(['likes', 'dislikes'])
+            ->paginate(6);
+    
+        $new_posts = Post::where('category_id', $id)
+            ->whereHas('category', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->withCount(['likes', 'dislikes'])
+            ->get();
+    
         foreach ($posts as $post) {
             $post->likes_count = $post->likes_count; 
             $post->dislikes_count = $post->dislikes_count;
             $post->views_count = $post->views; 
         }
-
+    
         return view('bbc.index', [
             'posts' => $posts,
             'categories' => $categories,
@@ -55,9 +82,21 @@ class BBCController extends Controller
     
     public function single($id)
     {
-        $categories = Category::all();
-        $post = Post::withCount(['likes', 'dislikes'])->findOrFail($id);
-        $new_posts = Post::orderBy('created_at', 'desc')->take(8)->withCount(['likes', 'dislikes'])->get();
+        $categories = Category::where('is_active', true)->get();
+    
+        $post = Post::whereHas('category', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->withCount(['likes', 'dislikes'])
+            ->findOrFail($id);
+    
+        $new_posts = Post::whereHas('category', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(8)
+            ->withCount(['likes', 'dislikes'])
+            ->get();
     
         $comments = Comment::where('post_id', $id)->with('user')->get();
     
@@ -73,5 +112,6 @@ class BBCController extends Controller
             'comments' => $comments,
         ]);
     }
+    
     
 }
